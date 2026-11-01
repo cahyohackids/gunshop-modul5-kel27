@@ -1,15 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
+import { Loader } from 'lucide-react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import Catalog from './pages/Catalog.jsx'
-import FavoritesPage from './pages/FavoritesPage.jsx'
-import ProfilePage from './pages/ProfilePage.jsx'
-import CreateGunPage from './pages/CreateGunPage.jsx'
-import EditGunPage from './pages/EditGunPage.jsx'
-import GunDetail from './components/gun/GunDetail.jsx'
-import GunDetailLoader from './components/gun/GunDetailLoader.jsx'
-import About from './pages/About.jsx'
-import Contact from './pages/Contact.jsx'
+// Lazy load (code-splitting): these screens are only downloaded the first
+// time the user opens them, keeping the initial bundle small.
+const FavoritesPage = lazy(() => import('./pages/FavoritesPage.jsx'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'))
+const CreateGunPage = lazy(() => import('./pages/CreateGunPage.jsx'))
+const EditGunPage = lazy(() => import('./pages/EditGunPage.jsx'))
+const GunDetail = lazy(() => import('./components/gun/GunDetail.jsx'))
+const GunDetailLoader = lazy(() => import('./components/gun/GunDetailLoader.jsx'))
+const About = lazy(() => import('./pages/About.jsx'))
+const Contact = lazy(() => import('./pages/Contact.jsx'))
+
+const PageFallback = () => (
+  <div className="state-box">
+    <Loader size={26} className="spin" />
+    <p>Memuat halaman…</p>
+  </div>
+)
 import PWABadge from './components/PWABadge.jsx'
 import ConfirmModal from './components/modals/ConfirmModal.jsx'
 import SplashScreen from './components/common/SplashScreen.jsx'
@@ -90,6 +100,7 @@ function App() {
       />
 
       <main className="main">
+        <Suspense fallback={<PageFallback />}>
         {/* Sub-page views */}
         {mode === 'create' && (
           <CreateGunPage
@@ -152,6 +163,7 @@ function App() {
             {tab === 'Contact' && <Contact />}
           </>
         )}
+        </Suspense>
       </main>
 
       {/* Global Delete Confirmation */}
