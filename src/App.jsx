@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 import Catalog from './pages/Catalog.jsx'
@@ -7,19 +7,24 @@ import ProfilePage from './pages/ProfilePage.jsx'
 import CreateGunPage from './pages/CreateGunPage.jsx'
 import EditGunPage from './pages/EditGunPage.jsx'
 import GunDetail from './components/gun/GunDetail.jsx'
+import GunDetailLoader from './components/gun/GunDetailLoader.jsx'
 import About from './pages/About.jsx'
 import Contact from './pages/Contact.jsx'
 import PWABadge from './components/PWABadge.jsx'
 import ConfirmModal from './components/modals/ConfirmModal.jsx'
 import SplashScreen from './components/common/SplashScreen.jsx'
 import gunService from './services/gunService.js'
+import { getGunIdFromUrl, setGunIdInUrl } from './utils/share.js'
 import './App.css'
 
+// Shared link support: /?gun=<id> opens that product directly
+const initialGunId = getGunIdFromUrl()
+
 function App() {
-  const [showSplash, setShowSplash] = useState(true)
+  const [showSplash, setShowSplash] = useState(!initialGunId)
   const [tab, setTab] = useState('Catalog')
-  const [mode, setMode] = useState('list') // 'list' | 'create' | 'edit' | 'detail'
-  const [selectedGun, setSelectedGun] = useState(null)
+  const [mode, setMode] = useState(initialGunId ? 'detail' : 'list') // 'list' | 'create' | 'edit' | 'detail'
+  const [selectedGun, setSelectedGun] = useState(initialGunId ? { id: initialGunId } : null)
   const [editingGun, setEditingGun] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -36,9 +41,11 @@ function App() {
     } else if (target === 'Detail') {
       setSelectedGun(payload)
       setMode('detail')
+      if (payload?.id && !String(payload.id).startsWith('local-')) setGunIdInUrl(payload.id)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       // Tab change
+      if (getGunIdFromUrl()) setGunIdInUrl(null, { replace: true })
       setTab(target)
       setMode('list')
       setSelectedGun(null)
@@ -51,7 +58,24 @@ function App() {
     setMode('list')
     setSelectedGun(null)
     setEditingGun(null)
+    if (getGunIdFromUrl()) setGunIdInUrl(null, { replace: true })
   }
+
+  // Browser back/forward between catalog and a product's link
+  useEffect(() => {
+    const onPop = () => {
+      const id = getGunIdFromUrl()
+      if (id) {
+        setSelectedGun((prev) => (prev && String(prev.id) === String(id) ? prev : { id }))
+        setMode('detail')
+      } else {
+        setMode('list')
+        setSelectedGun(null)
+      }
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   return (
     <div className="shell">
@@ -90,12 +114,21 @@ function App() {
         )}
 
         {mode === 'detail' && selectedGun && (
-          <GunDetail
-            gun={selectedGun}
-            onBack={handleBackToList}
-            onEdit={(g) => handleNavigate('Edit', g)}
-            onDelete={(g) => setDeleteTarget(g)}
-          />
+          selectedGun.name ? (
+            <GunDetail
+              gun={selectedGun}
+              onBack={handleBackToList}
+              onEdit={(g) => handleNavigate('Edit', g)}
+              onDelete={(g) => setDeleteTarget(g)}
+            />
+          ) : (
+            <GunDetailLoader
+              gunId={selectedGun.id}
+              onBack={handleBackToList}
+              onEdit={(g) => handleNavigate('Edit', g)}
+              onDelete={(g) => setDeleteTarget(g)}
+            />
+          )
         )}
 
         {/* Top-level Tabs */}

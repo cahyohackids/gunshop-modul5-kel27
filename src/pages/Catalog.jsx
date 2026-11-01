@@ -3,7 +3,6 @@ import { RefreshCw, Plus, Loader, AlertCircle, PackageOpen } from 'lucide-react'
 import { useGuns } from '../hooks/useGuns'
 import GUNS_LOCAL from '../data/guns'
 import GunCard from '../components/gun/GunCard'
-import GunDetail from '../components/gun/GunDetail'
 import AdvancedFilter from '../components/common/AdvancedFilter'
 import Pagination from '../components/common/Pagination'
 import { useDebounce } from '../hooks/useDebounce'
@@ -79,9 +78,6 @@ export default function Catalog({ onNavigate }) {
     document.querySelector('.list-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  // ---- detail view ----
-  const [selectedGun, setSelectedGun] = useState(null)
-
   // ---- delete ----
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -100,18 +96,6 @@ export default function Catalog({ onNavigate }) {
     } finally {
       setDeleting(false)
     }
-  }
-
-  // ---- If viewing a single product detail ----
-  if (selectedGun) {
-    return (
-      <GunDetail
-        gun={selectedGun}
-        onBack={() => setSelectedGun(null)}
-        onEdit={(g) => onNavigate && onNavigate('Edit', g)}
-        onDelete={(g) => { setSelectedGun(null); setDeleteTarget(g) }}
-      />
-    )
   }
 
   // ---- Main catalog view ----
@@ -197,7 +181,7 @@ export default function Catalog({ onNavigate }) {
               <GunCard
                 key={gun.id || gun.name}
                 gun={gun}
-                onSelect={setSelectedGun}
+                onSelect={(g) => onNavigate && onNavigate('Detail', g)}
                 onEdit={onNavigate ? (g) => onNavigate('Edit', g) : undefined}
                 onDelete={setDeleteTarget}
               />

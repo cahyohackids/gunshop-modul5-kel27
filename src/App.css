@@ -1589,3 +1589,44 @@
   color: var(--steel);
   padding: 0 2px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Share link (Celeng Day 2 — #2)
+ * --------------------------------------------------------------------------- */
+.share-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.share-tip {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  white-space: nowrap;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.share-block {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.share-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.72rem;
+  color: var(--steel);
+  word-break: break-all;
+}
+
+.detail-actions {
+  flex-wrap: wrap;
+}
