@@ -1926,3 +1926,105 @@
     justify-content: center;
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Review CRUD + thumbs up/down (Celeng Day 2 — #7)
+ * --------------------------------------------------------------------------- */
+.review-item--mine {
+  border-color: var(--brass);
+  background: #fffdf8;
+}
+
+.review-badge {
+  margin-left: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brass);
+  border: 1px solid var(--brass);
+  border-radius: 999px;
+  padding: 1px 7px;
+  vertical-align: middle;
+}
+
+.review-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.review-votes {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--steel);
+  font: inherit;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.vote-btn:hover {
+  border-color: var(--steel);
+  color: var(--ink);
+}
+
+.vote-btn--up {
+  background: #e8f8f0;
+  border-color: #1e8449;
+  color: #1e8449;
+}
+
+.vote-btn--down {
+  background: #feeceb;
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.review-time {
+  font-size: 0.78rem;
+  color: var(--steel);
+}
+
+.review-own-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-confirm {
+  font-size: 0.82rem;
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.icon-btn--danger:hover {
+  color: #c0392b;
+  border-color: #c0392b;
+}
+
+.review-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.review-edit__actions {
+  display: flex;
+  gap: 8px;
+}

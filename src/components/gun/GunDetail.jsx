@@ -3,8 +3,9 @@ import { ArrowLeft, Star, Send, Loader, Archive } from 'lucide-react'
 import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
 import LazyImage from '../common/LazyImage'
+import ReviewItem from '../review/ReviewItem'
 import { useReviews, useCreateReview } from '../../hooks/useReviews'
-import { getUserIdentifier } from '../../services/userService'
+import { getUserIdentifier, getUserProfile } from '../../services/userService'
 import { formatPrice, averageRating } from '../../utils/helpers'
 
 /**
@@ -23,7 +24,7 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
   const price = gun.price ?? gun.cook_time ?? 0
 
   // Reviews
-  const { reviews, loading: reviewsLoading, refetch: refetchReviews } = useReviews(gun.id)
+  const { reviews, loading: reviewsLoading, } = useReviews(gun.id)
   const { createReview, loading: submitting } = useCreateReview()
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState('')
@@ -45,6 +46,7 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
 
     const result = await createReview(gun.id, {
       user_identifier: getUserIdentifier(),
+      user_name: getUserProfile().username,
       rating,
       comment: comment.trim(),
     })
@@ -53,7 +55,6 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
       setReviewSuccess('Review submitted!')
       setComment('')
       setRating(5)
-      refetchReviews()
     } else {
       setReviewError('Could not submit review. The server may be unavailable.')
     }
@@ -194,22 +195,7 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
         ) : reviews.length > 0 ? (
           <ul className="review-list">
             {reviews.map((rev) => (
-              <li key={rev.id} className="review-item">
-                <div className="review-head">
-                  <span className="review-user">{rev.user_identifier || 'Anonymous'}</span>
-                  <span className="review-stars-display">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <Star
-                        key={i}
-                        size={14}
-                        fill={i < rev.rating ? 'var(--brass)' : 'none'}
-                        stroke={i < rev.rating ? 'var(--brass)' : 'var(--line)'}
-                      />
-                    ))}
-                  </span>
-                </div>
-                {rev.comment && <p className="review-comment">{rev.comment}</p>}
-              </li>
+              <ReviewItem key={rev.id} review={rev} gunId={gun.id} />
             ))}
           </ul>
         ) : (
