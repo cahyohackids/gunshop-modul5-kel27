@@ -21,6 +21,8 @@ import {
   formatDraftTime,
 } from '../utils/draftStorage'
 import ConfirmModal from '../components/modals/ConfirmModal'
+import ImageGalleryInput from '../components/common/ImageGalleryInput'
+import { compressImage } from '../utils/image'
 
 /**
  * CreateGunPage — Create a new weapon / hardware item with image upload,
@@ -46,6 +48,20 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [uploadedImageUrl, setUploadedImageUrl] = useState('')
+  // #9 multiple photos — images[0] is the cover
+  const [images, setImages] = useState([])
+  const galleryImages = images.length ? images : uploadedImageUrl ? [uploadedImageUrl] : []
+
+  const handleGalleryChange = (list) => {
+    setImages(list)
+    setUploadedImageUrl(list[0] || '')
+  }
+
+  // Step 1 picks/replaces the cover (first photo)
+  const setCover = (url) => {
+    setUploadedImageUrl(url)
+    setImages((prev) => (url ? [url, ...prev.slice(1)] : prev.slice(1)))
+  }
 
   // Specifications (ingredients in API)
   const [specs, setSpecs] = useState([
@@ -75,6 +91,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
       specs,
       steps,
       uploadedImageUrl,
+      images: galleryImages,
     }
     const saved = saveDraft(draftData, 'create')
     if (saved) {
@@ -85,7 +102,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
         setTimeout(() => setSuccessMsg(''), 3000)
       }
     }
-  }, [formData, specs, steps, uploadedImageUrl])
+  }, [formData, specs, steps, uploadedImageUrl, galleryImages])
 
   // Auto-save draft every 30 seconds while in form step
   useEffect(() => {
@@ -108,6 +125,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
         setUploadedImageUrl(draft.uploadedImageUrl)
         setImagePreview(draft.uploadedImageUrl)
       }
+      if (Array.isArray(draft.images)) setImages(draft.images)
       setCurrentStep('form')
       setShowDraftModal(false)
       setSuccessMsg('Draft successfully loaded.')
@@ -152,7 +170,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
   const handleSelectPreset = (url) => {
     setImageFile(null)
     setImagePreview(url)
-    setUploadedImageUrl(url)
+    setCover(url)
     setCurrentStep('form')
     setError('')
   }
@@ -174,7 +192,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
       setError('')
       const result = await uploadService.uploadImage(imageFile)
       if (result.success && result.data?.url) {
-        setUploadedImageUrl(result.data.url)
+        setCover(result.data.url)
         setCurrentStep('form')
       } else {
         throw new Error(result.message || 'Image upload failed.')
@@ -182,7 +200,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
     } catch (err) {
       console.warn('Upload API failed, falling back to local preview:', err)
       // Allow fallback to image preview so the user can continue even if MinIO bucket is unreachable
-      setUploadedImageUrl(imagePreview || '/guns/pistol.svg')
+      setCover(imageFile ? await compressImage(imageFile) : '/guns/pistol.svg')
       setCurrentStep('form')
     } finally {
       setUploading(false)
@@ -269,7 +287,8 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
       name: formData.name.trim(),
       category: formData.category || 'makanan',
       description: formData.description.trim() || `${formData.type} caliber ${formData.caliber}.`,
-      image_url: uploadedImageUrl || '/guns/pistol.svg',
+      image_url: galleryImages[0] || '/guns/pistol.svg',
+      images: galleryImages.length ? galleryImages : ['/guns/pistol.svg'],
       prep_time: 15,
       cook_time: Number(formData.price) || 500, // Price stored in cook_time
       servings: Number(formData.servings) || 1,
@@ -415,7 +434,6 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
                   onClick={() => {
                     setImageFile(null)
                     setImagePreview(null)
-                    setUploadedImageUrl('')
                   }}
                   title="Remove image"
                 >
@@ -443,8 +461,9 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
                 <button
                   type="button"
                   className="btn btn--outline"
-                  onClick={() => {
-                    setUploadedImageUrl(imagePreview)
+                  onClick={async () => {
+                    // keep a compressed copy instead of a temporary blob: URL
+                    setCover(imageFile ? await compressImage(imageFile) : imagePreview)
                     setCurrentStep('form')
                   }}
                 >
@@ -459,20 +478,9 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
       {/* STEP 2: Product Form */}
       {currentStep === 'form' && (
         <form onSubmit={handleSubmit} className="entry-form">
-          {/* Active Image Thumbnail */}
-          <div className="selected-thumb-bar">
-            <img src={uploadedImageUrl || imagePreview} alt="Selected" className="thumb-small" />
-            <div className="thumb-info">
-              <span className="thumb-title">Imagery Assigned</span>
-              <span className="thumb-sub">Ready for registration</span>
-            </div>
-            <button
-              type="button"
-              className="btn btn--outline btn--sm"
-              onClick={() => setCurrentStep('upload')}
-            >
-              Change Image
-            </button>
+          {/* #9 Multiple photos (first = cover) */}
+          <div className="form-fieldset">
+            <ImageGalleryInput images={galleryImages} onChange={handleGalleryChange} />
           </div>
 
           {/* Core Info */}

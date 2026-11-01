@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { BASE_URL, SUPABASE_KEY, IS_SUPABASE } from '../config/api'
+import { compressImage } from '../utils/image'
 
 // ---------------------------------------------------------------------------
 // UploadService — image upload service.
@@ -31,15 +32,29 @@ class UploadService {
 
     // --- Supabase Storage flow ---
     if (IS_SUPABASE) {
-      const ext = file.name.split('.').pop() || 'png'
+      // Shrink big photos first (max 1280px, JPEG) — faster upload & loading
+      let body = file
+      let contentType = file.type
+      let ext = file.name.split('.').pop() || 'png'
+      try {
+        const dataUrl = await compressImage(file, { maxSize: 1280, quality: 0.8 })
+        if (dataUrl.startsWith('data:image/jpeg')) {
+          body = await (await fetch(dataUrl)).blob()
+          contentType = 'image/jpeg'
+          ext = 'jpg'
+        }
+      } catch {
+        /* keep the original file */
+      }
+
       const fileName = `gun_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`
       const bucketName = 'guns'
 
       try {
         const uploadUrl = `${BASE_URL}/storage/v1/object/${bucketName}/${fileName}`
-        await axios.post(uploadUrl, file, {
+        await axios.post(uploadUrl, body, {
           headers: {
-            'Content-Type': file.type,
+            'Content-Type': contentType,
             apikey: SUPABASE_KEY,
             Authorization: `Bearer ${SUPABASE_KEY}`,
           },
@@ -53,13 +68,8 @@ class UploadService {
         }
       } catch (err) {
         console.warn('Supabase bucket upload not accessible, creating base64 data URL:', err)
-        // Read file as base64 Data URL so the image displays and persists
-        const dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result)
-          reader.onerror = reject
-          reader.readAsDataURL(file)
-        })
+        // Store a small compressed base64 Data URL so the image still persists
+        const dataUrl = await compressImage(file, { maxSize: 800, quality: 0.7 })
 
         return {
           success: true,

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ArrowLeft, Star, Send, Loader, Archive } from 'lucide-react'
 import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
-import LazyImage from '../common/LazyImage'
+import GunGallery from './GunGallery'
 import ReviewItem from '../review/ReviewItem'
 import ContactSellerButton from '../common/ContactSellerButton'
 import { useReviews, useCreateReview } from '../../hooks/useReviews'
@@ -70,7 +70,8 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
 
       {/* Hero */}
       <div className="detail-hero">
-        <LazyImage className="detail-img" src={imgSrc} alt={gun.name} rootMargin="0px" />
+        {/* #9 multiple photos */}
+        <GunGallery images={gun.images?.length ? gun.images : [imgSrc]} alt={gun.name} />
         <div className="detail-info">
           <h1 className="display">{gun.name}</h1>
           <p className="type">

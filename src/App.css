@@ -2070,3 +2070,246 @@
 .card-btn {
   padding-bottom: 12px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Multiple photos per catalog (Celeng Day 2 — #9)
+ * --------------------------------------------------------------------------- */
+.card-img-wrap {
+  position: relative;
+  display: block;
+}
+
+.card-photo-count {
+  position: absolute;
+  left: 10px;
+  bottom: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(24, 34, 44, 0.78);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--line);
+}
+
+.gallery__main {
+  position: relative;
+}
+
+.gallery .detail-img {
+  border-right: none;
+  height: 380px;
+}
+
+.gallery__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.gallery__nav:hover {
+  border-color: var(--brass);
+}
+
+.gallery__nav--prev {
+  left: 12px;
+}
+
+.gallery__nav--next {
+  right: 12px;
+}
+
+.gallery__counter {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(24, 34, 44, 0.78);
+  color: #fff;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery__thumbs {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  overflow-x: auto;
+  border-top: 1px solid var(--line);
+  background: #fbfcfc;
+}
+
+.gallery__thumb {
+  flex: 0 0 64px;
+  height: 52px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  opacity: 0.7;
+}
+
+.gallery__thumb .lazy-img {
+  width: 100%;
+  height: 100%;
+}
+
+.gallery__thumb--active {
+  border-color: var(--brass);
+  opacity: 1;
+}
+
+.gallery-input {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gallery-input__count {
+  margin-left: 6px;
+  color: var(--steel);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-input__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.gallery-input__item,
+.gallery-input__add {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f7f9fa;
+}
+
+.gallery-input__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-input__item--cover {
+  border: 2px solid var(--brass);
+}
+
+.gallery-input__item--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--steel);
+}
+
+.gallery-input__badge,
+.gallery-input__cover-btn {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.gallery-input__badge {
+  background: var(--brass);
+  color: #fff;
+}
+
+.gallery-input__cover-btn {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.gallery-input__remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(24, 34, 44, 0.75);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.gallery-input__add {
+  border-style: dashed;
+  border-width: 2px;
+}
+
+.gallery-input__add label {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--steel);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.gallery-input__add:hover {
+  border-color: var(--brass);
+}
+
+.gallery-input__presets {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 680px) {
+  .gallery {
+    border-right: none;
+  }
+  .gallery .detail-img {
+    height: 280px;
+  }
+}

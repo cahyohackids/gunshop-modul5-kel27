@@ -1,4 +1,4 @@
-import { Archive } from 'lucide-react'
+import { Archive, Images } from 'lucide-react'
 import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
 import LazyImage from '../common/LazyImage'
@@ -19,6 +19,7 @@ export default function GunCard({ gun, onSelect, onEdit, onDelete }) {
   const category = gun.type || gun.category || '—'
   const caliber = gun.caliber || gun.difficulty || ''
   const price = gun.price ?? gun.cook_time ?? 0
+  const photoCount = Array.isArray(gun.images) ? gun.images.length : 1
 
   return (
     <li className="card">
@@ -28,13 +29,20 @@ export default function GunCard({ gun, onSelect, onEdit, onDelete }) {
         onClick={() => onSelect(gun)}
         aria-label={`View ${gun.name}`}
       >
-        <LazyImage
-          className="card-img"
-          src={imgSrc}
-          alt={gun.name}
-          width="240"
-          height="180"
-        />
+        <span className="card-img-wrap">
+          <LazyImage
+            className="card-img"
+            src={imgSrc}
+            alt={gun.name}
+            width="240"
+            height="180"
+          />
+          {photoCount > 1 && (
+            <span className="card-photo-count" title={`${photoCount} foto`}>
+              <Images size={12} /> {photoCount}
+            </span>
+          )}
+        </span>
 
         <span className="name display">{gun.name}</span>
 
