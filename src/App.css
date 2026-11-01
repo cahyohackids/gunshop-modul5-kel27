@@ -2313,3 +2313,7 @@
     height: 280px;
   }
 }
+
+.profile-card > .btn {
+  align-self: flex-start;
+}

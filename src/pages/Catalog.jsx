@@ -35,12 +35,13 @@ export default function Catalog({ onNavigate }) {
   const [activeCategory, setActiveCategory] = useState('All')
   const [sortKey, setSortKey] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
-  const [page, setPage] = useState(1)
 
-  // Any filter change jumps back to page 1
-  useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch, activeCategory, sortKey, sortOrder])
+  // The page number belongs to one filter combination — any filter change
+  // automatically starts again from page 1.
+  const filterKey = JSON.stringify([debouncedSearch, activeCategory, sortKey, sortOrder])
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 })
+  const page = pageState.key === filterKey ? pageState.page : 1
+  const setPage = (p) => setPageState({ key: filterKey, page: p })
 
   // ---- API data (server-side filter, sort & pagination) ----
   const { guns: apiGuns, loading, error, pagination, refetch } = useGuns({

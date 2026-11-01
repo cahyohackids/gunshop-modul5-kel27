@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   ArrowLeft,
   Upload,
@@ -50,7 +50,10 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
   const [uploadedImageUrl, setUploadedImageUrl] = useState('')
   // #9 multiple photos — images[0] is the cover
   const [images, setImages] = useState([])
-  const galleryImages = images.length ? images : uploadedImageUrl ? [uploadedImageUrl] : []
+  const galleryImages = useMemo(
+    () => (images.length ? images : uploadedImageUrl ? [uploadedImageUrl] : []),
+    [images, uploadedImageUrl],
+  )
 
   const handleGalleryChange = (list) => {
     setImages(list)
