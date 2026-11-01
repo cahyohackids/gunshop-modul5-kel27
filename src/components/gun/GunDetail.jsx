@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowLeft, Star, Send, Loader } from 'lucide-react'
+import { ArrowLeft, Star, Send, Loader, Archive } from 'lucide-react'
 import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
 import LazyImage from '../common/LazyImage'
@@ -94,7 +94,7 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
             )}
             {onDelete && (
               <button type="button" className="btn btn--danger" onClick={() => onDelete(gun)}>
-                Delete
+                <Archive size={16} /> Arsipkan
               </button>
             )}
           </div>

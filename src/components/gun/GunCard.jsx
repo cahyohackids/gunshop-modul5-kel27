@@ -1,3 +1,4 @@
+import { Archive } from 'lucide-react'
 import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
 import LazyImage from '../common/LazyImage'
@@ -70,10 +71,10 @@ export default function GunCard({ gun, onSelect, onEdit, onDelete }) {
             type="button"
             className="card-act-btn card-act-btn--danger"
             onClick={(e) => { e.stopPropagation(); onDelete(gun) }}
-            aria-label={`Delete ${gun.name}`}
-            title="Delete"
+            aria-label={`Arsipkan ${gun.name}`}
+            title="Arsipkan (soft delete)"
           >
-            🗑️
+            <Archive size={15} />
           </button>
         )}
       </div>

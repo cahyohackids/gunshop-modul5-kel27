@@ -105,11 +105,11 @@ export default function Catalog({ onNavigate }) {
     try {
       setDeleting(true)
       setDeleteError('')
-      await gunService.deleteGun(deleteTarget.id)
+      // Soft delete: archive instead of removing the record
+      await gunService.archiveGun(deleteTarget.id)
       setDeleteTarget(null)
-      refetch()
     } catch (err) {
-      setDeleteError(err.message || 'Failed to delete.')
+      setDeleteError(err.message || 'Gagal mengarsipkan.')
     } finally {
       setDeleting(false)
     }
@@ -232,10 +232,9 @@ export default function Catalog({ onNavigate }) {
       {/* Delete confirmation */}
       <ConfirmModal
         open={!!deleteTarget}
-        title="Delete Product"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmLabel="Delete"
-        danger
+        title="Arsipkan Katalog?"
+        message={`"${deleteTarget?.name}" akan disembunyikan dari katalog dan dipindah ke Arsip. Bisa dipulihkan atau dihapus permanen dari halaman Arsip.`}
+        confirmLabel="Arsipkan"
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => { setDeleteTarget(null); setDeleteError('') }}

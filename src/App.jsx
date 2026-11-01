@@ -12,6 +12,7 @@ const EditGunPage = lazy(() => import('./pages/EditGunPage.jsx'))
 const GunDetail = lazy(() => import('./components/gun/GunDetail.jsx'))
 const GunDetailLoader = lazy(() => import('./components/gun/GunDetailLoader.jsx'))
 const EditProfilePage = lazy(() => import('./pages/EditProfilePage.jsx'))
+const ArchivePage = lazy(() => import('./pages/ArchivePage.jsx'))
 
 const PageFallback = () => (
   <div className="state-box">
@@ -181,7 +182,11 @@ function App() {
                 onReplaySplash={() => setShowSplash(true)}
                 onEditProfile={() => handleNavigate('EditProfile')}
                 onOpenDraft={handleOpenDraft}
+                onOpenArchive={() => handleNavigate('Archive')}
               />
+            )}
+            {tab === 'Archive' && (
+              <ArchivePage onNavigateCatalog={() => handleNavigate('Catalog')} />
             )}
           </>
         )}
@@ -191,21 +196,21 @@ function App() {
       {/* Global Delete Confirmation */}
       <ConfirmModal
         open={Boolean(deleteTarget)}
-        title="Delete Hardware Record"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
-        confirmLabel="Delete"
-        danger
+        title="Arsipkan Katalog?"
+        message={`"${deleteTarget?.name}" akan disembunyikan dari katalog dan dipindah ke Arsip. Bisa dipulihkan atau dihapus permanen dari halaman Arsip.`}
+        confirmLabel="Arsipkan"
         loading={deleting}
         onConfirm={async () => {
           if (!deleteTarget) return
           try {
             setDeleting(true)
-            await gunService.deleteGun(deleteTarget.id)
+            // Soft delete (archive) — permanent delete lives on the Archive page
+            await gunService.archiveGun(deleteTarget.id)
             setDeleteTarget(null)
             handleBackToList()
             setTab('Catalog')
           } catch (err) {
-            alert(err.message || 'Failed to delete record.')
+            alert(err.message || 'Gagal mengarsipkan.')
           } finally {
             setDeleting(false)
           }

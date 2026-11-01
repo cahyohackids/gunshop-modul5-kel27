@@ -39,6 +39,8 @@ export const normalizeProduct = (item) => {
       ? item.steps
       : ['Verify firearm is completely unloaded and point in safe direction.', 'Inspect receiver and mechanism for maintenance.']
 
+  const cover = item.image_url || item.image || '/guns/pistol.svg'
+
   return {
     ...item,
     id: item.id,
@@ -52,8 +54,28 @@ export const normalizeProduct = (item) => {
     image: item.image_url || item.image || '/guns/pistol.svg',
     ingredients: specsList,
     steps: stepsList,
+    // Day 2 columns
+    images: Array.isArray(item.images) && item.images.length > 0 ? item.images : [cover], // #9
+    seller_wa: item.seller_wa || '', // #8
+    is_archived: Boolean(item.deleted_at), // #6 soft delete
+    archived_at: item.deleted_at || null,
   }
 }
+
+/** Unique, non-empty image list; falls back to the single cover image. */
+const cleanImages = (images, cover) => {
+  const list = Array.isArray(images) ? images : []
+  const all = [...list, ...(list.length === 0 && cover ? [cover] : [])]
+  return [...new Set(all.filter((u) => typeof u === 'string' && u.trim()))].slice(0, 8)
+}
+
+/** Turn the form's spec rows into "Name: value" strings. */
+const toSpecStrings = (data) =>
+  Array.isArray(data.ingredients)
+    ? data.ingredients.map((i) => `${i.name}: ${i.quantity}`)
+    : Array.isArray(data.specs)
+    ? data.specs
+    : undefined
 
 // ---------------------------------------------------------------------------
 // GunService — wraps backend CRUD endpoints.
@@ -81,7 +103,12 @@ class GunService {
         queryParts.push(`type=eq.${encodeURIComponent(params.category)}`)
       }
 
-      if (params.sort_by) {
+      // Soft delete: archived rows have deleted_at set
+      queryParts.push(params.archived ? 'deleted_at=not.is.null' : 'deleted_at=is.null')
+
+      if (params.archived) {
+        queryParts.push('order=deleted_at.desc,id.desc')
+      } else if (params.sort_by) {
         const order = params.order === 'desc' ? 'desc' : 'asc'
         // id as tie-breaker keeps page boundaries stable
         queryParts.push(`order=${encodeURIComponent(params.sort_by)}.${order},id.${order}`)
@@ -141,20 +168,18 @@ class GunService {
    */
   async createGun(data) {
     if (IS_SUPABASE) {
-      const specsArray = Array.isArray(data.ingredients)
-        ? data.ingredients.map((i) => `${i.name}: ${i.quantity}`)
-        : Array.isArray(data.specs)
-        ? data.specs
-        : []
-
       const payload = {
         name: data.name,
         type: data.type || (data.category === 'minuman' ? 'Rifle' : 'Pistol'),
         caliber: data.caliber || '9mm',
         price: Number(data.price ?? data.cook_time ?? 0),
         description: data.description || '',
-        specs: specsArray,
-        image_url: data.image_url || null,
+        specs: toSpecStrings(data) || [],
+        // #9 multiple photos — images[0] is the cover (also kept in image_url)
+        images: cleanImages(data.images, data.image_url),
+        image_url: cleanImages(data.images, data.image_url)[0] || null,
+        // #8 seller WhatsApp
+        seller_wa: data.seller_wa || null,
       }
 
       const res = await apiClient.post('/rest/v1/products', payload, {
@@ -172,11 +197,7 @@ class GunService {
    */
   async updateGun(id, data) {
     if (IS_SUPABASE) {
-      const specsArray = Array.isArray(data.ingredients)
-        ? data.ingredients.map((i) => `${i.name}: ${i.quantity}`)
-        : Array.isArray(data.specs)
-        ? data.specs
-        : undefined
+      const specsArray = toSpecStrings(data)
 
       const payload = {
         updated_at: new Date().toISOString(),
@@ -189,7 +210,13 @@ class GunService {
       }
       if (data.description !== undefined) payload.description = data.description
       if (specsArray !== undefined) payload.specs = specsArray
-      if (data.image_url !== undefined) payload.image_url = data.image_url
+      if (data.images !== undefined) {
+        payload.images = cleanImages(data.images, data.image_url)
+        payload.image_url = payload.images[0] || null
+      } else if (data.image_url !== undefined) {
+        payload.image_url = data.image_url
+      }
+      if (data.seller_wa !== undefined) payload.seller_wa = data.seller_wa || null
 
       const res = await apiClient.patch(`/rest/v1/products?id=eq.${id}`, payload, {
         headers: { Prefer: 'return=representation' },
@@ -212,7 +239,34 @@ class GunService {
   }
 
   /**
-   * Delete product.
+   * Soft delete — hide the product from the catalog but keep the record.
+   */
+  async archiveGun(id) {
+    await apiClient.patch(`/rest/v1/products?id=eq.${id}`, {
+      deleted_at: new Date().toISOString(),
+    })
+    invalidateGuns(id)
+    return { success: true }
+  }
+
+  /**
+   * Restore an archived product back to the catalog.
+   */
+  async restoreGun(id) {
+    await apiClient.patch(`/rest/v1/products?id=eq.${id}`, { deleted_at: null })
+    invalidateGuns(id)
+    return { success: true }
+  }
+
+  /**
+   * List archived products.
+   */
+  async getArchivedGuns(params = {}) {
+    return this.getGuns({ pageSize: 50, ...params, archived: true })
+  }
+
+  /**
+   * Delete product PERMANENTLY.
    */
   async deleteGun(id) {
     if (IS_SUPABASE) {

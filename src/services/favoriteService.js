@@ -20,7 +20,10 @@ class FavoriteService {
         `/rest/v1/favorites?user_id=eq.${userIdentifier}&select=product_id,created_at,products(*)`,
       )
       const list = Array.isArray(data)
-        ? data.map((fav) => {
+        ? data
+            // archived (soft-deleted) products are hidden from favourites too
+            .filter((fav) => !fav.products?.deleted_at)
+            .map((fav) => {
             const prod = fav.products ? normalizeProduct(fav.products) : null
             return {
               ...(prod || {}),

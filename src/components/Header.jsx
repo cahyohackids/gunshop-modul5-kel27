@@ -4,6 +4,7 @@ import { useFavorites } from '../hooks/useFavorites'
 const NAV_ITEMS = [
   { id: 'Catalog', label: 'Catalog' },
   { id: 'Favorites', label: 'Favorites', hasBadge: true },
+  { id: 'Archive', label: 'Arsip' },
   { id: 'Profile', label: 'Profile' },
 ]
 
