@@ -25,6 +25,30 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        runtimeCaching: [
+          {
+            // Query caching at the service-worker level: API GETs are served
+            // from the network when online and from this cache when offline.
+            urlPattern: ({ url, request }) =>
+              request.method === 'GET' && url.pathname.startsWith('/rest/v1/'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 6,
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 },
+              cacheableResponse: { statuses: [0, 200, 206] },
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/storage/v1/object/public/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
     }),
   ],

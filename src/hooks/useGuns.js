@@ -1,90 +1,62 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import gunService from '../services/gunService'
+import { queryKeys } from '../config/queryClient'
 
 // ---------------------------------------------------------------------------
 // useGuns — fetch the paginated / filtered product list from the API.
 //
-// Returns { guns, loading, error, pagination, refetch }.
-// When the API is unreachable the `error` string will be set and `guns`
-// will remain an empty array so the UI can show a proper error state.
+// Returns { guns, loading, fetching, error, pagination, refetch }.
+// Results are cached per params (see config/queryClient.js), so flipping
+// back to a page you already saw is instant. While a new page loads, the
+// previous page stays on screen (keepPreviousData).
 // ---------------------------------------------------------------------------
 
+export const fetchGunsQuery = async (params) => {
+  const response = await gunService.getGuns(params)
+  if (!response.success) throw new Error(response.message || 'Failed to fetch products.')
+  return response
+}
+
 export function useGuns(params = {}) {
-  const [guns, setGuns] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [pagination, setPagination] = useState(null)
+  const query = useQuery({
+    queryKey: queryKeys.guns(params),
+    queryFn: () => fetchGunsQuery(params),
+    placeholderData: keepPreviousData,
+  })
 
-  // Serialise params so the effect re-runs when they change.
-  const paramKey = JSON.stringify(params)
-
-  const fetchGuns = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await gunService.getGuns(params)
-
-      if (response.success) {
-        setGuns(response.data || [])
-        setPagination(response.pagination || null)
-      } else {
-        setError(response.message || 'Failed to fetch products.')
-      }
-    } catch (err) {
-      setError(err.message || 'An error occurred while fetching products.')
-      setGuns([])
-    } finally {
-      setLoading(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramKey])
-
-  useEffect(() => {
-    fetchGuns()
-  }, [fetchGuns])
-
-  return { guns, loading, error, pagination, refetch: fetchGuns }
+  return {
+    guns: query.data?.data || [],
+    pagination: query.data?.pagination || null,
+    // `loading` = nothing to show yet, or showing the previous page while the new one loads
+    loading: query.isLoading || query.isPlaceholderData,
+    fetching: query.isFetching,
+    error: query.error ? query.error.message || 'An error occurred while fetching products.' : null,
+    refetch: query.refetch,
+  }
 }
 
 // ---------------------------------------------------------------------------
-// useGunById — fetch a single product by its UUID.
+// useGunById — fetch a single product by its id (cached per id).
 //
 // Returns { gun, loading, error, refetch }.
 // ---------------------------------------------------------------------------
 
 export function useGunById(id) {
-  const [gun, setGun] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  const fetchGun = useCallback(async () => {
-    if (!id) {
-      setLoading(false)
-      return
-    }
-    try {
-      setLoading(true)
-      setError(null)
-
+  const enabled = Boolean(id) && !String(id).startsWith('local-')
+  const query = useQuery({
+    queryKey: queryKeys.gun(id),
+    enabled,
+    queryFn: async () => {
       const response = await gunService.getGunById(id)
+      if (!response.success) throw new Error(response.message || 'Product not found.')
+      return response.data
+    },
+  })
 
-      if (response.success) {
-        setGun(response.data)
-      } else {
-        setError(response.message || 'Product not found.')
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to load product details.')
-      setGun(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    fetchGun()
-  }, [fetchGun])
-
-  return { gun, loading, error, refetch: fetchGun }
+  return {
+    gun: query.data || null,
+    loading: enabled && query.isLoading,
+    error: query.error ? query.error.message || 'Failed to load product details.' : null,
+    refetch: query.refetch,
+  }
 }

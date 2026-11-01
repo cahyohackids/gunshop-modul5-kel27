@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { RefreshCw, Plus, Loader, AlertCircle, PackageOpen } from 'lucide-react'
-import { useGuns } from '../hooks/useGuns'
+import { useQueryClient } from '@tanstack/react-query'
+import { useGuns, fetchGunsQuery } from '../hooks/useGuns'
+import { queryKeys } from '../config/queryClient'
 import GUNS_LOCAL from '../data/guns'
 import GunCard from '../components/gun/GunCard'
 import AdvancedFilter from '../components/common/AdvancedFilter'
@@ -49,6 +51,21 @@ export default function Catalog({ onNavigate }) {
     sort_by: sortKey,
     order: sortOrder,
   })
+  // Query caching: prefetch the next page so "Next" opens instantly
+  const qc = useQueryClient()
+  useEffect(() => {
+    if (!pagination || page >= pagination.totalPages) return
+    const nextParams = {
+      page: page + 1,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch,
+      category: activeCategory,
+      sort_by: sortKey,
+      order: sortOrder,
+    }
+    qc.prefetchQuery({ queryKey: queryKeys.guns(nextParams), queryFn: () => fetchGunsQuery(nextParams) })
+  }, [qc, pagination, page, debouncedSearch, activeCategory, sortKey, sortOrder])
+
   const [useLocal, setUseLocal] = useState(false)
   const showLocal = useLocal || (error && apiGuns.length === 0 && !loading)
 

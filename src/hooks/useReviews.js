@@ -1,44 +1,31 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import reviewService from '../services/reviewService'
+import { queryClient, queryKeys } from '../config/queryClient'
 
 // ---------------------------------------------------------------------------
-// useReviews — fetch reviews for a specific product.
+// useReviews — fetch reviews for a specific product (cached per product).
 // ---------------------------------------------------------------------------
 
 export function useReviews(gunId) {
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  const fetchReviews = useCallback(async () => {
-    if (!gunId) {
-      setLoading(false)
-      return
-    }
-    try {
-      setLoading(true)
-      setError(null)
-
+  const enabled = Boolean(gunId) && !String(gunId).startsWith('local-')
+  const query = useQuery({
+    queryKey: queryKeys.reviews(gunId),
+    enabled,
+    staleTime: 30 * 1000,
+    queryFn: async () => {
       const response = await reviewService.getReviews(gunId)
+      if (!response.success) throw new Error(response.message || 'Failed to fetch reviews.')
+      return response.data || []
+    },
+  })
 
-      if (response.success) {
-        setReviews(response.data || [])
-      } else {
-        setError(response.message || 'Failed to fetch reviews.')
-      }
-    } catch (err) {
-      setError(err.message || 'An error occurred while fetching reviews.')
-      setReviews([])
-    } finally {
-      setLoading(false)
-    }
-  }, [gunId])
-
-  useEffect(() => {
-    fetchReviews()
-  }, [fetchReviews])
-
-  return { reviews, loading, error, refetch: fetchReviews }
+  return {
+    reviews: query.data || [],
+    loading: enabled && query.isLoading,
+    error: query.error ? query.error.message || 'An error occurred while fetching reviews.' : null,
+    refetch: query.refetch,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -55,11 +42,10 @@ export function useCreateReview() {
       setLoading(true)
       setError(null)
       setSuccess(false)
-
       const response = await reviewService.createReview(gunId, reviewData)
-
       if (response.success) {
         setSuccess(true)
+        queryClient.invalidateQueries({ queryKey: queryKeys.reviews(gunId) })
         return response.data
       } else {
         setError(response.message || 'Failed to submit review.')
