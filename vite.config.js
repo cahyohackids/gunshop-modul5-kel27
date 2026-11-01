@@ -24,11 +24,14 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        // App shell only (JS/CSS/HTML) — images are NOT handled by the service
+        // worker, so the browser serves them from its HTTP cache: DevTools shows
+        // "(disk cache)" / "(memory cache)" (Cache-Control set in vercel.json
+        // and on Supabase Storage uploads).
+        globPatterns: ['**/*.{js,css,html,webmanifest}'],
         runtimeCaching: [
           {
-            // Query caching at the service-worker level: API GETs are served
-            // from the network when online and from this cache when offline.
+            // API GETs: network first, cached copy only as an offline fallback.
             urlPattern: ({ url, request }) =>
               request.method === 'GET' && url.pathname.startsWith('/rest/v1/'),
             handler: 'NetworkFirst',
@@ -37,15 +40,6 @@ export default defineConfig({
               networkTimeoutSeconds: 6,
               expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 },
               cacheableResponse: { statuses: [0, 200, 206] },
-            },
-          },
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/storage/v1/object/public/'),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'image-cache',
-              expiration: { maxEntries: 120, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],

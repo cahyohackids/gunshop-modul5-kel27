@@ -55,6 +55,9 @@ class UploadService {
         await axios.post(uploadUrl, body, {
           headers: {
             'Content-Type': contentType,
+            // File names are unique, so the photo never changes → let the
+            // browser keep it in its disk cache for a year.
+            'cache-control': 'max-age=31536000',
             apikey: SUPABASE_KEY,
             Authorization: `Bearer ${SUPABASE_KEY}`,
           },
