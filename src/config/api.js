@@ -50,7 +50,12 @@ apiClient.interceptors.request.use(
 // Response interceptor — unwrap response and normalise errors
 // ---------------------------------------------------------------------------
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  // `withMeta: true` on a request keeps the response headers (e.g. the
+  // Content-Range header Supabase uses to report the total row count).
+  (response) =>
+    response.config?.withMeta
+      ? { data: response.data, headers: response.headers }
+      : response.data,
   (error) => {
     let message = 'An unexpected error occurred'
     let status = null

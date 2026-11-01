@@ -1518,3 +1518,74 @@
     transform: translateY(0);
   }
 }
+
+/* ---------------------------------------------------------------------------
+ * Pagination (Celeng Day 2 — #1)
+ * --------------------------------------------------------------------------- */
+.stock--loading {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.pagination__summary {
+  color: var(--steel);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.pagination__btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.pagination__btn:hover:not(:disabled) {
+  border-color: var(--brass);
+}
+
+.pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination__btn--active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.pagination__gap {
+  color: var(--steel);
+  padding: 0 2px;
+}

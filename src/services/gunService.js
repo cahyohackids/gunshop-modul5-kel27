@@ -65,6 +65,11 @@ class GunService {
    */
   async getGuns(params = {}) {
     if (IS_SUPABASE) {
+      // Pagination: page is 1-based; pageSize (or legacy `limit`) rows per page
+      const pageSize = Number(params.pageSize || params.limit) || 8
+      const page = Math.max(1, Number(params.page) || 1)
+      const offset = (page - 1) * pageSize
+
       const queryParts = ['select=*']
 
       if (params.search) {
@@ -77,26 +82,34 @@ class GunService {
 
       if (params.sort_by) {
         const order = params.order === 'desc' ? 'desc' : 'asc'
-        queryParts.push(`order=${encodeURIComponent(params.sort_by)}.${order}`)
+        // id as tie-breaker keeps page boundaries stable
+        queryParts.push(`order=${encodeURIComponent(params.sort_by)}.${order},id.${order}`)
       } else {
-        queryParts.push('order=created_at.desc')
+        queryParts.push('order=created_at.desc,id.desc')
       }
 
-      if (params.limit) {
-        queryParts.push(`limit=${params.limit}`)
-      }
+      queryParts.push(`limit=${pageSize}`, `offset=${offset}`)
 
       const queryString = queryParts.join('&')
-      const data = await apiClient.get(`/rest/v1/products?${queryString}`)
+      const { data, headers } = await apiClient.get(`/rest/v1/products?${queryString}`, {
+        withMeta: true,
+        // Ask PostgREST for the total row count (returned in Content-Range: 0-7/42)
+        headers: { Prefer: 'count=exact' },
+      })
       const list = Array.isArray(data) ? data.map(normalizeProduct) : []
+
+      const range = headers?.['content-range'] || ''
+      const totalFromHeader = Number(range.split('/')[1])
+      const total = Number.isFinite(totalFromHeader) ? totalFromHeader : offset + list.length
 
       return {
         success: true,
         data: list,
         pagination: {
-          total: list.length,
-          page: params.page || 1,
-          limit: params.limit || 50,
+          page,
+          pageSize,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / pageSize)),
         },
       }
     }

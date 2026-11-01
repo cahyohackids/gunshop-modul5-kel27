@@ -1,18 +1,22 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { RefreshCw, Plus, Loader, AlertCircle, PackageOpen } from 'lucide-react'
 import { useGuns } from '../hooks/useGuns'
 import GUNS_LOCAL from '../data/guns'
 import GunCard from '../components/gun/GunCard'
 import GunDetail from '../components/gun/GunDetail'
 import AdvancedFilter from '../components/common/AdvancedFilter'
+import Pagination from '../components/common/Pagination'
+import { useDebounce } from '../hooks/useDebounce'
 import ConfirmModal from '../components/modals/ConfirmModal'
 import gunService from '../services/gunService'
 import {
   matchesSearch,
   matchesCategory,
   sortItems,
-  extractCategories,
 } from '../utils/helpers'
+
+const PAGE_SIZE = 8
+const CATEGORIES = ['All', 'Pistol', 'Rifle', 'Shotgun', 'Submachine Gun']
 
 /**
  * Catalog page — the main product listing.
@@ -24,33 +28,56 @@ import {
  * Features: search, category filter, sort, CRUD actions, detail modal.
  */
 export default function Catalog({ onNavigate }) {
-  // ---- API data ----
-  const { guns: apiGuns, loading, error, refetch } = useGuns({ limit: 50 })
-  const [useLocal, setUseLocal] = useState(false)
-
-  // Decide data source
-  const rawGuns = useMemo(() => {
-    if (useLocal || (error && apiGuns.length === 0)) {
-      // Enrich local data with synthetic ids so FavoriteButton and detail work
-      return GUNS_LOCAL.map((g, i) => ({ ...g, id: g.id || `local-${i}` }))
-    }
-    return apiGuns
-  }, [apiGuns, error, useLocal])
-
-  // ---- filters / sort ----
+  // ---- filters / sort / page ----
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search.trim())
   const [activeCategory, setActiveCategory] = useState('All')
   const [sortKey, setSortKey] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
+  const [page, setPage] = useState(1)
 
-  const categories = useMemo(() => extractCategories(rawGuns), [rawGuns])
+  // Any filter change jumps back to page 1
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, activeCategory, sortKey, sortOrder])
 
-  const filteredGuns = useMemo(() => {
-    let result = rawGuns.filter(
-      (g) => matchesSearch(g, search) && matchesCategory(g, activeCategory),
+  // ---- API data (server-side filter, sort & pagination) ----
+  const { guns: apiGuns, loading, error, pagination, refetch } = useGuns({
+    page,
+    pageSize: PAGE_SIZE,
+    search: debouncedSearch,
+    category: activeCategory,
+    sort_by: sortKey,
+    order: sortOrder,
+  })
+  const [useLocal, setUseLocal] = useState(false)
+  const showLocal = useLocal || (error && apiGuns.length === 0 && !loading)
+
+  // Local fallback is filtered/sorted/paginated on the client
+  const localResult = useMemo(() => {
+    if (!showLocal) return null
+    const all = sortItems(
+      GUNS_LOCAL.map((g, i) => ({ ...g, id: g.id || `local-${i}` })).filter(
+        (g) => matchesSearch(g, debouncedSearch) && matchesCategory(g, activeCategory),
+      ),
+      sortKey,
+      sortOrder,
     )
-    return sortItems(result, sortKey, sortOrder)
-  }, [rawGuns, search, activeCategory, sortKey, sortOrder])
+    const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE))
+    return {
+      items: all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+      pagination: { page, pageSize: PAGE_SIZE, total: all.length, totalPages },
+    }
+  }, [showLocal, debouncedSearch, activeCategory, sortKey, sortOrder, page])
+
+  const filteredGuns = localResult ? localResult.items : apiGuns
+  const pageInfo = localResult ? localResult.pagination : pagination
+  const totalCount = pageInfo?.total ?? filteredGuns.length
+
+  const changePage = (p) => {
+    setPage(p)
+    document.querySelector('.list-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // ---- detail view ----
   const [selectedGun, setSelectedGun] = useState(null)
@@ -103,7 +130,7 @@ export default function Catalog({ onNavigate }) {
           <h2>Current stock</h2>
           <div className="list-head-right">
             <span className="count">
-              {filteredGuns.length} piece{filteredGuns.length !== 1 ? 's' : ''}
+              {totalCount} piece{totalCount !== 1 ? 's' : ''}
             </span>
             {onNavigate && (
               <button
@@ -121,7 +148,7 @@ export default function Catalog({ onNavigate }) {
         <AdvancedFilter
           search={search}
           onSearch={setSearch}
-          categories={categories}
+          categories={CATEGORIES}
           activeCategory={activeCategory}
           onCategory={setActiveCategory}
           sortKey={sortKey}
@@ -130,14 +157,14 @@ export default function Catalog({ onNavigate }) {
         />
 
         {/* States */}
-        {loading && (
+        {loading && filteredGuns.length === 0 && (
           <div className="state-box">
             <Loader size={28} className="spin" />
             <p>Loading products…</p>
           </div>
         )}
 
-        {!loading && error && !useLocal && (
+        {!loading && error && !showLocal && (
           <div className="state-box state-box--error">
             <AlertCircle size={28} />
             <p>{error}</p>
@@ -156,7 +183,7 @@ export default function Catalog({ onNavigate }) {
           </div>
         )}
 
-        {!loading && filteredGuns.length === 0 && !error && (
+        {!loading && filteredGuns.length === 0 && (!error || showLocal) && (
           <div className="state-box">
             <PackageOpen size={28} />
             <p>No products match your search.</p>
@@ -165,7 +192,7 @@ export default function Catalog({ onNavigate }) {
 
         {/* Product grid */}
         {filteredGuns.length > 0 && (
-          <ul className="stock">
+          <ul className={`stock${loading ? ' stock--loading' : ''}`}>
             {filteredGuns.map((gun) => (
               <GunCard
                 key={gun.id || gun.name}
@@ -178,7 +205,16 @@ export default function Catalog({ onNavigate }) {
           </ul>
         )}
 
-        {useLocal && (
+        <Pagination
+          page={pageInfo?.page || page}
+          totalPages={pageInfo?.totalPages || 1}
+          total={pageInfo?.total}
+          pageSize={PAGE_SIZE}
+          onChange={changePage}
+          disabled={loading}
+        />
+
+        {showLocal && (
           <p className="local-notice">
             Showing local catalog (server unavailable).{' '}
             <button
