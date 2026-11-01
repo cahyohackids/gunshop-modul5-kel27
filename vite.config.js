@@ -8,6 +8,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // icons too should come from the browser disk cache, not the SW precache
+      includeManifestIcons: false,
       devOptions: { enabled: true },
       manifest: {
         name: 'Bore & Barrel',
