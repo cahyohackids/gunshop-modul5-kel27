@@ -114,3 +114,25 @@ export const getAllDraftIds = () => {
 export const clearAllDrafts = () => {
   getAllDraftIds().forEach(deleteDraft)
 }
+
+/**
+ * List every saved draft with a short summary, newest first.
+ * Used by the Profile page "Draft" section.
+ * @returns {{ id: string, isNew: boolean, name: string, type: string, savedAt: string|null, image: string|null }[]}
+ */
+export const listDrafts = () =>
+  getAllDraftIds()
+    .map((id) => {
+      const d = loadDraft(id) || {}
+      const f = d.formData || {}
+      return {
+        id,
+        isNew: id === 'create',
+        name: (f.name || '').trim() || 'Tanpa nama',
+        type: f.type || '',
+        price: f.price,
+        savedAt: d.savedAt || getDraftTimestamp(id),
+        image: d.uploadedImageUrl || d.imagePreview || null,
+      }
+    })
+    .sort((a, b) => String(b.savedAt || '').localeCompare(String(a.savedAt || '')))

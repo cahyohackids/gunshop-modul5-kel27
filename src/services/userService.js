@@ -62,6 +62,7 @@ export const getUserProfile = () => {
     username: 'Shooter',
     avatar: null,
     bio: '',
+    phone: '',
     userId: getUserIdentifier(),
   }
 }
@@ -111,6 +112,27 @@ export const updateAvatar = (avatarBase64) => {
 }
 
 /**
+ * Normalise an Indonesian phone number to the international format used by
+ * wa.me links: 0812-3456-789 / +62 812… → 628123456789
+ */
+export const normalizePhone = (raw) => {
+  let digits = String(raw || '').replace(/\D/g, '')
+  if (!digits) return ''
+  if (digits.startsWith('0')) digits = '62' + digits.slice(1)
+  else if (digits.startsWith('8')) digits = '62' + digits
+  return digits
+}
+
+/**
+ * Update WhatsApp number
+ */
+export const updatePhone = (phone) => {
+  const profile = getUserProfile()
+  profile.phone = normalizePhone(phone)
+  return saveUserProfile(profile)
+}
+
+/**
  * Reset identifier (generates a new anonymous identifier)
  */
 export const resetUserIdentifier = () => {
@@ -130,5 +152,7 @@ export default {
   updateUsername,
   updateBio,
   updateAvatar,
+  updatePhone,
+  normalizePhone,
   resetUserIdentifier,
 }

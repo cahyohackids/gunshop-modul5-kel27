@@ -25,7 +25,7 @@ import ConfirmModal from '../components/modals/ConfirmModal'
  * EditGunPage — Edit an existing weapon / hardware item.
  * Supports updating specs, steps, image replacement, and draft management.
  */
-export default function EditGunPage({ gun, gunId, onBack, onSuccess }) {
+export default function EditGunPage({ gun, gunId, onBack, onSuccess, resumeDraft = false }) {
   const targetId = gunId || gun?.id
 
   const [loading, setLoading] = useState(true)
@@ -55,7 +55,7 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess }) {
   const [steps, setSteps] = useState([''])
 
   // Draft modal
-  const [showDraftModal, setShowDraftModal] = useState(() => (targetId ? hasDraft(targetId) : false))
+  const [showDraftModal, setShowDraftModal] = useState(() => (targetId && !resumeDraft ? hasDraft(targetId) : false))
   const [draftTimestamp, setDraftTimestamp] = useState(() => (targetId ? getDraftTimestamp(targetId) : null))
 
   // Fetch initial data
@@ -108,6 +108,8 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess }) {
             setSteps(['Standard manufacturer maintenance and cleaning protocol.'])
           }
 
+          // Opened from Profile → Draft → "Lanjutkan": apply the draft on top
+          if (resumeDraft && hasDraft(targetId)) applyDraft()
         } else {
           setError('Hardware record could not be loaded.')
         }
@@ -125,6 +127,18 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess }) {
   }, [targetId])
 
   // Draft operations
+  function applyDraft() {
+    const draft = loadDraft(targetId)
+    if (!draft) return false
+    if (draft.formData) setFormData(draft.formData)
+    if (draft.specs) setSpecs(draft.specs)
+    if (draft.steps) setSteps(draft.steps)
+    if (draft.imagePreview) setImagePreview(draft.imagePreview)
+    setSuccessMsg('Saved draft restored.')
+    setTimeout(() => setSuccessMsg(''), 3000)
+    return true
+  }
+
   const handleLoadDraft = () => {
     const draft = loadDraft(targetId)
     if (draft) {

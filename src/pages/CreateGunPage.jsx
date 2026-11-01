@@ -25,7 +25,7 @@ import ConfirmModal from '../components/modals/ConfirmModal'
  * CreateGunPage — Create a new weapon / hardware item with image upload,
  * draft persistence (auto-save), specs, and assembly steps.
  */
-export default function CreateGunPage({ onBack, onSuccess }) {
+export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }) {
   // Step state: 'upload' (upload or choose image) or 'form' (enter details)
   const [currentStep, setCurrentStep] = useState('upload')
 
@@ -64,7 +64,7 @@ export default function CreateGunPage({ onBack, onSuccess }) {
   const [successMsg, setSuccessMsg] = useState('')
 
   // Draft management
-  const [showDraftModal, setShowDraftModal] = useState(() => hasDraft('create'))
+  const [showDraftModal, setShowDraftModal] = useState(() => !resumeDraft && hasDraft('create'))
   const [draftTimestamp, setDraftTimestamp] = useState(() => getDraftTimestamp('create'))
 
   const handleSaveDraft = useCallback((notify = true) => {
@@ -105,13 +105,19 @@ export default function CreateGunPage({ onBack, onSuccess }) {
       if (draft.uploadedImageUrl) {
         setUploadedImageUrl(draft.uploadedImageUrl)
         setImagePreview(draft.uploadedImageUrl)
-        setCurrentStep('form')
       }
+      setCurrentStep('form')
       setShowDraftModal(false)
       setSuccessMsg('Draft successfully loaded.')
       setTimeout(() => setSuccessMsg(''), 4000)
     }
   }
+
+  // Opened from Profile → Draft → "Lanjutkan": load the draft straight away
+  useEffect(() => {
+    if (resumeDraft && hasDraft('create')) handleLoadDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeDraft])
 
   const handleDiscardDraft = () => {
     deleteDraft('create')
@@ -299,7 +305,7 @@ export default function CreateGunPage({ onBack, onSuccess }) {
           <ArrowLeft size={18} /> Back to Catalog
         </button>
         <div className="form-head-actions">
-          {currentStep === 'form' && (
+          {(currentStep === 'form' || formData.name) && (
             <button
               type="button"
               className="btn btn--outline btn--sm"

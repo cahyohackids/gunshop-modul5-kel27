@@ -11,8 +11,7 @@ const CreateGunPage = lazy(() => import('./pages/CreateGunPage.jsx'))
 const EditGunPage = lazy(() => import('./pages/EditGunPage.jsx'))
 const GunDetail = lazy(() => import('./components/gun/GunDetail.jsx'))
 const GunDetailLoader = lazy(() => import('./components/gun/GunDetailLoader.jsx'))
-const About = lazy(() => import('./pages/About.jsx'))
-const Contact = lazy(() => import('./pages/Contact.jsx'))
+const EditProfilePage = lazy(() => import('./pages/EditProfilePage.jsx'))
 
 const PageFallback = () => (
   <div className="state-box">
@@ -36,17 +35,22 @@ function App() {
   const [mode, setMode] = useState(initialGunId ? 'detail' : 'list') // 'list' | 'create' | 'edit' | 'detail'
   const [selectedGun, setSelectedGun] = useState(initialGunId ? { id: initialGunId } : null)
   const [editingGun, setEditingGun] = useState(null)
+  const [resumeDraft, setResumeDraft] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
   // Unified navigation handler
   const handleNavigate = (target, payload) => {
+    setResumeDraft(Boolean(payload?.resumeDraft))
     if (target === 'Create') {
       setMode('create')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (target === 'Edit') {
       setEditingGun(payload)
       setMode('edit')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else if (target === 'EditProfile') {
+      setMode('editProfile')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (target === 'Detail') {
       setSelectedGun(payload)
@@ -64,7 +68,14 @@ function App() {
     }
   }
 
+  // Profile → Draft → "Lanjutkan"
+  const handleOpenDraft = (draftId) => {
+    if (draftId === 'create') handleNavigate('Create', { resumeDraft: true })
+    else handleNavigate('Edit', { id: draftId, resumeDraft: true })
+  }
+
   const handleBackToList = () => {
+    setResumeDraft(false)
     setMode('list')
     setSelectedGun(null)
     setEditingGun(null)
@@ -104,6 +115,7 @@ function App() {
         {/* Sub-page views */}
         {mode === 'create' && (
           <CreateGunPage
+            resumeDraft={resumeDraft}
             onBack={handleBackToList}
             onSuccess={() => {
               handleBackToList()
@@ -116,11 +128,19 @@ function App() {
           <EditGunPage
             gun={editingGun}
             gunId={editingGun?.id}
+            resumeDraft={resumeDraft}
             onBack={handleBackToList}
             onSuccess={() => {
               handleBackToList()
               setTab('Catalog')
             }}
+          />
+        )}
+
+        {mode === 'editProfile' && (
+          <EditProfilePage
+            onBack={() => handleNavigate('Profile')}
+            onSaved={() => handleNavigate('Profile')}
           />
         )}
 
@@ -157,10 +177,12 @@ function App() {
               />
             )}
             {tab === 'Profile' && (
-              <ProfilePage onReplaySplash={() => setShowSplash(true)} />
+              <ProfilePage
+                onReplaySplash={() => setShowSplash(true)}
+                onEditProfile={() => handleNavigate('EditProfile')}
+                onOpenDraft={handleOpenDraft}
+              />
             )}
-            {tab === 'About' && <About />}
-            {tab === 'Contact' && <Contact />}
           </>
         )}
         </Suspense>

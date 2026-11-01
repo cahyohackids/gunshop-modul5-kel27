@@ -1665,3 +1665,191 @@
   from { background-position: 100% 0; }
   to { background-position: 0 0; }
 }
+
+/* ---------------------------------------------------------------------------
+ * Profile sections: about, contact, drafts, edit (Celeng Day 2 — #5)
+ * --------------------------------------------------------------------------- */
+.profile-masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profile-card-top {
+  flex-wrap: wrap;
+}
+
+.profile-edit-btn {
+  margin-left: auto;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-bio {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.profile-phone {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--steel);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--steel);
+  font-style: italic;
+}
+
+.stat-item--link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.stat-item--link:hover .stat-label {
+  color: var(--brass);
+}
+
+.profile-section {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scroll-margin-top: 90px;
+}
+
+.profile-section .section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.section-count {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--steel);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-section__lede {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.profile-section__empty {
+  margin: 0;
+  color: var(--steel);
+  font-size: 0.92rem;
+}
+
+.contact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contact-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--steel);
+}
+
+.draft-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.draft-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fbfcfc;
+}
+
+.draft-item__img {
+  width: 64px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+}
+
+.draft-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.draft-item__name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draft-item__meta,
+.draft-item__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--steel);
+}
+
+.draft-item__actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.edit-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+@media (max-width: 520px) {
+  .draft-item {
+    flex-wrap: wrap;
+  }
+  .draft-item__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .profile-edit-btn {
+    margin-left: 0;
+  }
+}
