@@ -2317,3 +2317,131 @@
 .profile-card > .btn {
   align-self: flex-start;
 }
+
+/* ---------------------------------------------------------------------------
+ * Visible query-cache / lazy-load indicators (#3, #4)
+ * --------------------------------------------------------------------------- */
+.cache-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cache-status--cache {
+  color: #7a5a1c;
+  border-color: var(--brass);
+  background: #fbf5e9;
+}
+
+.cache-status--server {
+  color: var(--steel);
+}
+
+.cache-status--fetching {
+  color: var(--ink);
+}
+
+.cache-status__time {
+  font-weight: 400;
+  color: var(--steel);
+}
+
+.list-head-right {
+  flex-wrap: wrap;
+}
+
+.perf-refresh {
+  margin-left: auto;
+}
+
+.perf-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perf-block + .perf-block {
+  border-top: 1px dashed var(--line);
+  padding-top: 14px;
+}
+
+.perf-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.perf-hint,
+.perf-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--steel);
+}
+
+.perf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.perf-list li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.perf-list code {
+  font-size: 0.8rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 6px;
+  word-break: break-all;
+}
+
+.perf-meta {
+  color: var(--steel);
+  font-size: 0.78rem;
+}
+
+.perf-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+}
+
+.perf-chip--lazy {
+  color: #2c5f8a;
+}
+
+.perf-chip--fresh {
+  color: #1e8449;
+}
+
+.perf-chip--stale {
+  color: var(--steel);
+}
+
+.perf-block .btn {
+  align-self: flex-start;
+}

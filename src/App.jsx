@@ -13,6 +13,11 @@ const GunDetail = lazy(() => import('./components/gun/GunDetail.jsx'))
 const GunDetailLoader = lazy(() => import('./components/gun/GunDetailLoader.jsx'))
 const EditProfilePage = lazy(() => import('./pages/EditProfilePage.jsx'))
 const ArchivePage = lazy(() => import('./pages/ArchivePage.jsx'))
+// Query cache inspector (TanStack Query Devtools) — the floating button at the
+// bottom-left. Lazy loaded too, so it doesn't weigh down the first load.
+const QueryDevtools = lazy(() =>
+  import('@tanstack/react-query-devtools/production').then((m) => ({ default: m.ReactQueryDevtools })),
+)
 
 const PageFallback = () => (
   <div className="state-box">
@@ -217,6 +222,10 @@ function App() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      <Suspense fallback={null}>
+        <QueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+      </Suspense>
 
       <PWABadge />
       <Footer />

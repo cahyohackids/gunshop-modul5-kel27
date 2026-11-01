@@ -14,6 +14,7 @@ import userService from '../services/userService'
 import { useFavorites } from '../hooks/useFavorites'
 import { getAllDraftIds } from '../utils/draftStorage'
 import DraftList from '../components/profile/DraftList'
+import PerformancePanel from '../components/profile/PerformancePanel'
 import About from './About'
 import Contact from './Contact'
 
@@ -139,6 +140,7 @@ export default function ProfilePage({ onReplaySplash, onEditProfile, onOpenDraft
       <DraftList onOpenDraft={onOpenDraft} />
       <About />
       <Contact />
+      <PerformancePanel />
     </div>
   )
 }

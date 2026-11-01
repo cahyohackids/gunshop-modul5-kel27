@@ -30,6 +30,9 @@ export function useGuns(params = {}) {
     // `loading` = nothing to show yet, or showing the previous page while the new one loads
     loading: query.isLoading || query.isPlaceholderData,
     fetching: query.isFetching,
+    // Query caching info (shown by <CacheStatus />)
+    dataUpdatedAt: query.dataUpdatedAt,
+    fromCache: Boolean(query.data) && !query.isFetchedAfterMount && !query.isPlaceholderData,
     error: query.error ? query.error.message || 'An error occurred while fetching products.' : null,
     refetch: query.refetch,
   }

@@ -7,6 +7,7 @@ import GUNS_LOCAL from '../data/guns'
 import GunCard from '../components/gun/GunCard'
 import AdvancedFilter from '../components/common/AdvancedFilter'
 import Pagination from '../components/common/Pagination'
+import CacheStatus from '../components/common/CacheStatus'
 import { useDebounce } from '../hooks/useDebounce'
 import ConfirmModal from '../components/modals/ConfirmModal'
 import gunService from '../services/gunService'
@@ -44,7 +45,7 @@ export default function Catalog({ onNavigate }) {
   const setPage = (p) => setPageState({ key: filterKey, page: p })
 
   // ---- API data (server-side filter, sort & pagination) ----
-  const { guns: apiGuns, loading, error, pagination, refetch } = useGuns({
+  const { guns: apiGuns, loading, error, pagination, refetch, fetching, fromCache, dataUpdatedAt } = useGuns({
     page,
     pageSize: PAGE_SIZE,
     search: debouncedSearch,
@@ -131,6 +132,14 @@ export default function Catalog({ onNavigate }) {
         <div className="list-head">
           <h2>Current stock</h2>
           <div className="list-head-right">
+            {!showLocal && (
+              <CacheStatus
+                fromCache={fromCache}
+                fetching={fetching}
+                updatedAt={dataUpdatedAt}
+                onRefresh={() => refetch()}
+              />
+            )}
             <span className="count">
               {totalCount} piece{totalCount !== 1 ? 's' : ''}
             </span>

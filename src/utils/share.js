@@ -18,7 +18,17 @@ export const getGunShareUrl = (gun) => {
 /** Read the product id from the current URL (or null). */
 export const getGunIdFromUrl = () => {
   try {
-    return new URLSearchParams(window.location.search).get(GUN_PARAM)
+    const raw = new URLSearchParams(window.location.search).get(GUN_PARAM)
+    if (!raw) return null
+    // Some share targets glue the share text onto the link
+    // (e.g. "?gun=8 Cek MP5 di Bore & Barrel") — keep only the id itself.
+    const id = raw.trim().match(/^[A-Za-z0-9-]+/)?.[0] || null
+    if (id && id !== raw) {
+      const url = new URL(window.location.href)
+      url.searchParams.set(GUN_PARAM, id)
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash)
+    }
+    return id
   } catch {
     return null
   }
@@ -66,11 +76,13 @@ const copyText = async (text) => {
 export const shareGun = async (gun) => {
   const url = getGunShareUrl(gun)
   const title = `${gun.name} — Bore & Barrel`
-  const text = `Cek ${gun.name} di Bore & Barrel`
 
-  if (navigator.share) {
+  // Native share sheet on phones/tablets; on desktop just copy a clean link
+  // (desktop share targets tend to merge the text into the URL).
+  const isTouch = window.matchMedia?.('(pointer: coarse)').matches
+  if (isTouch && navigator.share) {
     try {
-      await navigator.share({ title, text, url })
+      await navigator.share({ title, url })
       return 'shared'
     } catch (err) {
       if (err?.name === 'AbortError') return 'cancelled'
