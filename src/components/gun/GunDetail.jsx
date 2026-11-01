@@ -4,6 +4,7 @@ import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
 import LazyImage from '../common/LazyImage'
 import ReviewItem from '../review/ReviewItem'
+import ContactSellerButton from '../common/ContactSellerButton'
 import { useReviews, useCreateReview } from '../../hooks/useReviews'
 import { getUserIdentifier, getUserProfile } from '../../services/userService'
 import { formatPrice, averageRating } from '../../utils/helpers'
@@ -84,6 +85,9 @@ export default function GunDetail({ gun, onBack, onEdit, onDelete }) {
               {avgRating.toFixed(1)} ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
             </p>
           )}
+
+          {/* #8 Hubungi penjual via WhatsApp */}
+          <ContactSellerButton gun={gun} />
 
           <div className="detail-actions">
             <FavoriteButton gunId={gun.id || gun.name} />

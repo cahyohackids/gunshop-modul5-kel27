@@ -2,6 +2,7 @@ import { Archive } from 'lucide-react'
 import FavoriteButton from '../common/FavoriteButton'
 import ShareButton from '../common/ShareButton'
 import LazyImage from '../common/LazyImage'
+import ContactSellerButton from '../common/ContactSellerButton'
 import { formatPrice, truncate } from '../../utils/helpers'
 
 /**
@@ -48,6 +49,11 @@ export default function GunCard({ gun, onSelect, onEdit, onDelete }) {
 
         <span className="price">{formatPrice(price)}</span>
       </button>
+
+      {/* #8 Hubungi penjual via WhatsApp */}
+      <div className="card-foot">
+        <ContactSellerButton gun={gun} variant="card" />
+      </div>
 
       {/* Floating actions row */}
       <div className="card-actions">

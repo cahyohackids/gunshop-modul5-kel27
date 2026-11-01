@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import gunService from '../services/gunService'
+import { normalizePhone } from '../services/userService'
 import uploadService from '../services/uploadService'
 import {
   saveDraft,
@@ -43,6 +44,7 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess, resumeDraft
     description: '',
     servings: 1,
     is_featured: false,
+    seller_wa: '',
   })
 
   const [currentImageUrl, setCurrentImageUrl] = useState('')
@@ -87,6 +89,7 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess, resumeDraft
             description: data.description || '',
             servings: data.servings || 1,
             is_featured: Boolean(data.is_featured),
+            seller_wa: data.seller_wa || '',
           })
           setCurrentImageUrl(data.image_url || data.image || '/guns/pistol.svg')
 
@@ -294,6 +297,7 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess, resumeDraft
       is_featured: Boolean(formData.is_featured),
       ingredients: cleanSpecs,
       steps: cleanSteps,
+      seller_wa: normalizePhone(formData.seller_wa),
     }
 
     try {
@@ -506,6 +510,22 @@ export default function EditGunPage({ gun, gunId, onBack, onSuccess, resumeDraft
             rows={3}
             className="form-textarea"
           />
+        </div>
+        <div className="form-group">
+          <label htmlFor="edit-seller-wa" className="form-label">
+            WhatsApp Penjual (untuk tombol Hubungi Penjual)
+          </label>
+          <input
+            id="edit-seller-wa"
+            type="tel"
+            inputMode="tel"
+            name="seller_wa"
+            value={formData.seller_wa}
+            onChange={(e) => setFormData((p) => ({ ...p, seller_wa: e.target.value }))}
+            placeholder="081234567890"
+            className="form-input"
+          />
+          <span className="form-hint">Kosongkan jika belum ada — tombol tetap muncul dan pembeli bisa pilih kontak sendiri.</span>
         </div>
 
         {/* Specs */}

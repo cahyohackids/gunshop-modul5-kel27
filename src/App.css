@@ -2028,3 +2028,45 @@
   display: flex;
   gap: 8px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Hubungi penjual — WhatsApp (Celeng Day 2 — #8)
+ * --------------------------------------------------------------------------- */
+.wa-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 4px;
+  background: #25d366;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  border: 1px solid #1ebe5a;
+  transition: background 0.15s ease, transform 0.15s ease;
+  align-self: flex-start;
+}
+
+.wa-btn:hover {
+  background: #1ebe5a;
+}
+
+.wa-btn:active {
+  transform: translateY(1px);
+}
+
+.wa-btn--card {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+}
+
+.card-foot {
+  padding: 0 16px 16px;
+}
+
+.card-btn {
+  padding-bottom: 12px;
+}

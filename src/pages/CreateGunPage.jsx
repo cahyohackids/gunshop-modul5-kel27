@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import gunService from '../services/gunService'
+import { getUserProfile, normalizePhone } from '../services/userService'
 import uploadService from '../services/uploadService'
 import {
   saveDraft,
@@ -39,6 +40,7 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
     description: '',
     servings: 1,
     is_featured: false,
+    seller_wa: getUserProfile().phone || '', // #8 default: my own WhatsApp from Profile
   })
 
   const [imageFile, setImageFile] = useState(null)
@@ -275,6 +277,10 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
       is_featured: Boolean(formData.is_featured),
       ingredients: cleanSpecs,
       steps: cleanSteps,
+      type: formData.type,
+      caliber: formData.caliber,
+      price: Number(formData.price) || 0,
+      seller_wa: normalizePhone(formData.seller_wa),
     }
 
     try {
@@ -578,6 +584,22 @@ export default function CreateGunPage({ onBack, onSuccess, resumeDraft = false }
               rows={3}
               className="form-textarea"
             />
+          </div>
+          <div className="form-group">
+            <label htmlFor="seller_wa" className="form-label">
+              WhatsApp Penjual (untuk tombol Hubungi Penjual)
+            </label>
+            <input
+              id="seller_wa"
+              type="tel"
+              inputMode="tel"
+              name="seller_wa"
+              value={formData.seller_wa}
+              onChange={handleFormChange}
+              placeholder="081234567890"
+              className="form-input"
+            />
+            <span className="form-hint">Kosongkan jika belum ada — tombol tetap muncul dan pembeli bisa pilih kontak sendiri.</span>
           </div>
 
           {/* Specifications (Ingredients) */}
